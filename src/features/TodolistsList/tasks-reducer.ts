@@ -106,14 +106,28 @@ export const removeTaskTC = (taskId: string, todolistId: string) => async (dispa
             handleServerNetworkError(error, dispatch)
         }
     }
-    const res = await todolistsAPI.deleteTask(todolistId, taskId)
-        .then(res => {
-            const action = removeTaskAC(taskId, todolistId)
-            dispatch(action)
-        })
 }
-export const addTaskTC = (title: string, todolistId: string) => (dispatch: Dispatch) => {
+export const addTaskTC = (title: string, todolistId: string) => async (dispatch: Dispatch) => {
     dispatch(setAppStatusAC({status: 'loading'}))
+
+    try {
+        const res = await todolistsAPI.createTask(todolistId, title)
+
+        if (res.data.resultCode === ResponseResultCode.OK) {
+            const task = res.data.data.item
+            const action = addTaskAC(task)
+            dispatch(action)
+            dispatch(setAppStatusAC({status: 'succeeded'}))
+        } else {
+            handleServerAppError(res.data, dispatch);
+        }
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
+    }
+
     todolistsAPI.createTask(todolistId, title)
         .then(res => {
             if (res.data.resultCode === 0) {
