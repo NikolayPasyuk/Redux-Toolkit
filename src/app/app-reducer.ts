@@ -17,15 +17,16 @@ const slice = createSlice({
     reducers: {
         setAppErrorAC(state, action: PayloadAction<{ error: string | null }>) {
             state.error = action.payload.error
-        }
+        },
+        setAppStatusAC(state, action: PayloadAction<{ status: RequestStatusType }>) {
+            state.status = action.payload.status
+        },
     }
 })
 
 export const appReducer = slice.reducer
 //     (state: InitialStateType = initialState, action: ActionsType): InitialStateType => {
 //     switch (action.type) {
-//         case 'APP/SET-STATUS':
-//             return {...state, status: action.status}
 //         case 'APP/SET-IS-INITIALIZED':
 //             return {...state, isInitialized: action.isInitialized}
 //         default:
@@ -42,10 +43,6 @@ export type InitialStateType = {
     isInitialized: boolean
 }
 
-export const setAppErrorAC = (error: string | null) => ({
-    type: 'APP/SET-ERROR',
-    error
-} as const)
 export const setAppStatusAC = (status: RequestStatusType) => ({
     type: 'APP/SET-STATUS',
     status
@@ -78,5 +75,5 @@ export const initializeAppTC = () => async (dispatch: Dispatch) => {
 }
 
 
-export type SetAppErrorActionType = ReturnType<typeof setAppErrorAC>
+// export type SetAppErrorActionType = ReturnType<typeof setAppErrorAC>
 export type SetAppStatusActionType = ReturnType<typeof setAppStatusAC>
