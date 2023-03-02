@@ -2,6 +2,7 @@ import {todolistsAPI, TodolistType} from '../../api/todolists-api'
 import {Dispatch} from 'redux'
 import {RequestStatusType, setAppStatusAC,} from '../../app/app-reducer'
 import {handleServerNetworkError} from '../../utils/error-utils';
+import axios from 'axios';
 
 const initialState: Array<TodolistDomainType> = []
 
@@ -63,18 +64,18 @@ export const setTodolistsAC = (todolists: Array<TodolistType>) => ({
 } as const)
 
 // thunks
-export const fetchTodolistsTC = () => {
-    return (dispatch: any) => {
-        dispatch(setAppStatusAC({status: 'loading'}))
-        todolistsAPI.getTodolists()
-            .then((res) => {
-                dispatch(setTodolistsAC(res.data))
-                dispatch(setAppStatusAC({status: 'succeeded'}))
-                return res.data
-            })
-            .catch((e) => {
-                handleServerNetworkError(e, dispatch)
-            })
+export const fetchTodolistsTC = () => async (dispatch: Dispatch) => {
+    dispatch(setAppStatusAC({status: 'loading'}))
+    try {
+        const res = await todolistsAPI.getTodolists()
+
+        dispatch(setTodolistsAC(res.data))
+        dispatch(setAppStatusAC({status: 'succeeded'}))
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
     }
 }
 export const removeTodolistTC = (todolistId: string) => {
