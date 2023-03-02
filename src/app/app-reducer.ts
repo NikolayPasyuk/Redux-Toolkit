@@ -3,7 +3,7 @@ import {handleServerAppError, handleServerNetworkError} from '../utils/error-uti
 import axios from 'axios';
 import {setIsLoggedInAC} from '../features/Login/auth-reducer';
 import {Dispatch} from 'redux';
-import {createSlice} from '@reduxjs/toolkit';
+import {createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 const initialState: InitialStateType = {
     status: 'idle',
@@ -14,7 +14,11 @@ const initialState: InitialStateType = {
 const slice = createSlice({
     name: 'app',
     initialState: initialState,
-    reducers: {}
+    reducers: {
+        setAppErrorAC(state, action: PayloadAction<{ error: string | null }>) {
+            state.error = action.payload.error
+        }
+    }
 })
 
 export const appReducer = slice.reducer
@@ -22,8 +26,6 @@ export const appReducer = slice.reducer
 //     switch (action.type) {
 //         case 'APP/SET-STATUS':
 //             return {...state, status: action.status}
-//         case 'APP/SET-ERROR':
-//             return {...state, error: action.error}
 //         case 'APP/SET-IS-INITIALIZED':
 //             return {...state, isInitialized: action.isInitialized}
 //         default:
@@ -78,8 +80,3 @@ export const initializeAppTC = () => async (dispatch: Dispatch) => {
 
 export type SetAppErrorActionType = ReturnType<typeof setAppErrorAC>
 export type SetAppStatusActionType = ReturnType<typeof setAppStatusAC>
-
-type ActionsType =
-    | SetAppErrorActionType
-    | SetAppStatusActionType
-    | ReturnType<typeof setIsInitializedAC>
