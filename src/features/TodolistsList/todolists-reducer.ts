@@ -115,12 +115,22 @@ export const addTodolistTC = (title: string) => async (dispatch: Dispatch) => {
         }
     }
 }
-export const changeTodolistTitleTC = (id: string, title: string) => {
-    return (dispatch: Dispatch<ActionsType>) => {
-        todolistsAPI.updateTodolist(id, title)
-            .then((res) => {
-                dispatch(changeTodolistTitleAC(id, title))
-            })
+export const changeTodolistTitleTC = (id: string, title: string) => async (dispatch: Dispatch) => {
+    dispatch(setAppStatusAC({status: 'loading'}))
+    try {
+        const res = await todolistsAPI.updateTodolist(id, title)
+
+        if (res.data.resultCode === ResponseResultCode.OK) {
+            dispatch(changeTodolistTitleAC(id, title))
+            dispatch(setAppStatusAC({status: 'succeeded'}))
+        } else {
+            handleServerAppError(res.data, dispatch);
+        }
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
     }
 }
 
