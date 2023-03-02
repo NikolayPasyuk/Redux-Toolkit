@@ -1,7 +1,9 @@
 import {
     addTodolistAC,
-    AddTodolistActionType, removeTodolistAC,
-    RemoveTodolistActionType, setTodolistsAC,
+    AddTodolistActionType,
+    removeTodolistAC,
+    RemoveTodolistActionType,
+    setTodolistsAC,
     SetTodolistsActionType
 } from './todolists-reducer'
 import {
@@ -16,7 +18,6 @@ import {Dispatch} from 'redux'
 import {AppRootStateType} from '../../app/store'
 import {setAppStatusAC,} from '../../app/app-reducer'
 import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils'
-import {setIsLoggedInAC} from '../Login/auth-reducer';
 import axios from 'axios';
 
 const initialState: TasksStateType = {}
@@ -95,11 +96,13 @@ export const fetchTasksTC = (todolistId: string) => async (dispatch: Dispatch) =
     }
 }
 export const removeTaskTC = (taskId: string, todolistId: string) => async (dispatch: Dispatch) => {
+    dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await todolistsAPI.deleteTask(todolistId, taskId)
 
         if (res.data.resultCode === ResponseResultCode.OK) {
-            dispatch(setIsLoggedInAC({value: true}))
+            const action = removeTaskAC(taskId, todolistId)
+            dispatch(action)
             dispatch(setAppStatusAC({status: 'succeeded'}))
         } else {
             handleServerAppError(res.data, dispatch);
