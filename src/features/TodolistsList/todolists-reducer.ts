@@ -25,7 +25,8 @@ const slice = createSlice({
             })
         },
         changeTodolistTitleAC(state, action: PayloadAction<{ id: string, title: string }>) {
-
+            const index = state.findIndex(tl => tl.id === action.payload.id)
+            state[index].title = action.payload.title
         },
         changeTodolistFilterAC(state, action: PayloadAction<{ id: string, filter: FilterValuesType }>) {
 
@@ -50,12 +51,6 @@ export const {
 } = slice.actions
 //     (state: Array<TodolistDomainType> = initialState, action: ActionsType): Array<TodolistDomainType> => {
 //     switch (action.type) {
-
-//         case 'CHANGE-TODOLIST-TITLE':
-//             return state.map(tl => tl.id === action.id ? {
-//                 ...tl,
-//                 title: action.title
-//             } : tl)
 //         case 'CHANGE-TODOLIST-FILTER':
 //             return state.map(tl => tl.id === action.id ? {
 //                 ...tl,
