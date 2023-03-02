@@ -3,12 +3,21 @@ import {handleServerAppError, handleServerNetworkError} from '../utils/error-uti
 import axios from 'axios';
 import {setIsLoggedInAC} from '../features/Login/auth-reducer';
 import {Dispatch} from 'redux';
+import {createSlice} from '@reduxjs/toolkit';
 
 const initialState: InitialStateType = {
     status: 'idle',
     error: null,
     isInitialized: false
 }
+
+const slice = createSlice({
+    name: 'app',
+    initialState: initialState,
+    reducers: {
+
+    }
+})
 
 export const appReducer = (state: InitialStateType = initialState, action: ActionsType): InitialStateType => {
     switch (action.type) {
