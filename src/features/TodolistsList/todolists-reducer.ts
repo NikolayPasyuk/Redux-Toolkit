@@ -18,7 +18,11 @@ const slice = createSlice({
             }
         },
         addTodolistAC(state, action: PayloadAction<{ todolist: TodolistType }>) {
-
+            state.unshift({
+                ...action.payload.todolist,
+                filter: 'all',
+                entityStatus: 'idle'
+            })
         },
         changeTodolistTitleAC(state, action: PayloadAction<{ id: string, title: string }>) {
 
@@ -46,11 +50,7 @@ export const {
 } = slice.actions
 //     (state: Array<TodolistDomainType> = initialState, action: ActionsType): Array<TodolistDomainType> => {
 //     switch (action.type) {
-//         case 'REMOVE-TODOLIST':
-//             return state.filter(tl => tl.id !== action.id)
-//         case 'ADD-TODOLIST':
-//             return [{...action.todolist, filter: 'all', entityStatus: 'idle'}, ...state]
-//
+
 //         case 'CHANGE-TODOLIST-TITLE':
 //             return state.map(tl => tl.id === action.id ? {
 //                 ...tl,
