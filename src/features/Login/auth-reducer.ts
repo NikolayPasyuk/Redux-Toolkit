@@ -24,13 +24,13 @@ export const {setIsLoggedInAC} = slice.actions
 
 // thunks
 export const loginTC = (data: LoginParamsType) => async (dispatch: Dispatch) => {
-    dispatch(setAppStatusAC('loading'))
+    dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await authAPI.login(data)
 
         if (res.data.resultCode === ResponseResultCode.OK) {
             dispatch(setIsLoggedInAC({value: true}))
-            dispatch(setAppStatusAC('succeeded'))
+            dispatch(setAppStatusAC({status: 'succeeded'}))
         } else {
             handleServerAppError(res.data, dispatch);
         }
@@ -42,13 +42,13 @@ export const loginTC = (data: LoginParamsType) => async (dispatch: Dispatch) => 
     }
 }
 export const logoutTC = () => async (dispatch: Dispatch) => {
-    dispatch(setAppStatusAC('loading'))
+    dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await authAPI.logout()
 
         if (res.data.resultCode === ResponseResultCode.OK) {
             dispatch(setIsLoggedInAC({value: false}))
-            dispatch(setAppStatusAC('succeeded'))
+            dispatch(setAppStatusAC({status: 'succeeded'}))
         } else {
             handleServerAppError(res.data, dispatch);
         }
