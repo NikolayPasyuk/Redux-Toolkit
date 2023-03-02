@@ -1,6 +1,7 @@
 import {
-    AddTodolistActionType,
-    RemoveTodolistActionType,
+    addTodolistAC,
+    AddTodolistActionType, removeTodolistAC,
+    RemoveTodolistActionType, setTodolistsAC,
     SetTodolistsActionType
 } from './todolists-reducer'
 import {
@@ -38,15 +39,15 @@ export const tasksReducer = (state: TasksStateType = initialState, action: Actio
                 [action.todolistId]: state[action.todolistId]
                     .map(t => t.id === action.taskId ? {...t, ...action.model} : t)
             }
-        case 'ADD-TODOLIST':
-            return {...state, [action.todolist.id]: []}
-        case 'REMOVE-TODOLIST':
+        case addTodolistAC.type:
+            return {...state, [action.payload.todolist.id]: []}
+        case removeTodolistAC.type:
             const copyState = {...state}
-            delete copyState[action.id]
+            delete copyState[action.payload.id]
             return copyState
-        case 'SET-TODOLISTS': {
+        case setTodolistsAC.type: {
             const copyState = {...state}
-            action.todolists.forEach(tl => {
+            action.payload.todolists.forEach(tl => {
                 copyState[tl.id] = []
             })
             return copyState
@@ -131,40 +132,40 @@ export const addTaskTC = (title: string, todolistId: string) => async (dispatch:
     }
 }
 export const updateTaskTC = (taskId: string, domainModel: UpdateDomainTaskModelType, todolistId: string) => async (dispatch: Dispatch, getState: () => AppRootStateType) => {
-        const state = getState()
-        const task = state.tasks[todolistId].find(t => t.id === taskId)
-        if (!task) {
-            //throw new Error("task not found in the state");
-            console.warn('task not found in the state')
-            return
+    const state = getState()
+    const task = state.tasks[todolistId].find(t => t.id === taskId)
+    if (!task) {
+        //throw new Error("task not found in the state");
+        console.warn('task not found in the state')
+        return
+    }
+
+    const apiModel: UpdateTaskModelType = {
+        deadline: task.deadline,
+        description: task.description,
+        priority: task.priority,
+        startDate: task.startDate,
+        title: task.title,
+        status: task.status,
+        ...domainModel
+    }
+
+    try {
+        const res = await todolistsAPI.updateTask(todolistId, taskId, apiModel)
+
+        if (res.data.resultCode === ResponseResultCode.OK) {
+            const action = updateTaskAC(taskId, domainModel, todolistId)
+            dispatch(action)
+        } else {
+            handleServerAppError(res.data, dispatch);
         }
-
-        const apiModel: UpdateTaskModelType = {
-            deadline: task.deadline,
-            description: task.description,
-            priority: task.priority,
-            startDate: task.startDate,
-            title: task.title,
-            status: task.status,
-            ...domainModel
-        }
-
-        try {
-            const res = await todolistsAPI.updateTask(todolistId, taskId, apiModel)
-
-            if (res.data.resultCode === ResponseResultCode.OK) {
-                const action = updateTaskAC(taskId, domainModel, todolistId)
-                dispatch(action)
-            } else {
-                handleServerAppError(res.data, dispatch);
-            }
-        } catch (e) {
-            if (axios.isAxiosError<{ message: string }>(e)) {
-                const error = e.response?.data ? e.response?.data.message : e.message
-                handleServerNetworkError(error, dispatch)
-            }
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
         }
     }
+}
 
 // types
 export type UpdateDomainTaskModelType = {
