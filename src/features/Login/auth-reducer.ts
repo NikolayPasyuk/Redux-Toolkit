@@ -7,10 +7,20 @@ import {
 import {authAPI, LoginParamsType, ResponseResultCode} from '../../api/todolists-api';
 import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils';
 import axios from 'axios';
+import {createSlice} from '@reduxjs/toolkit';
 
 const initialState = {
     isLoggedIn: false
 }
+
+const slice = createSlice({
+    name: 'auth',
+    initialState: initialState,
+    reducers: {
+
+    }
+})
+
 type InitialStateType = typeof initialState
 
 export const authReducer = (state: InitialStateType = initialState, action: ActionsType): InitialStateType => {
