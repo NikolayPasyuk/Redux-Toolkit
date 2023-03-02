@@ -127,24 +127,9 @@ export const addTaskTC = (title: string, todolistId: string) => async (dispatch:
             handleServerNetworkError(error, dispatch)
         }
     }
-
-    todolistsAPI.createTask(todolistId, title)
-        .then(res => {
-            if (res.data.resultCode === 0) {
-                const task = res.data.data.item
-                const action = addTaskAC(task)
-                dispatch(action)
-                dispatch(setAppStatusAC({status: 'succeeded'}))
-            } else {
-                handleServerAppError(res.data, dispatch);
-            }
-        })
-        .catch((error) => {
-            handleServerNetworkError(error, dispatch)
-        })
 }
 export const updateTaskTC = (taskId: string, domainModel: UpdateDomainTaskModelType, todolistId: string) =>
-    (dispatch: Dispatch, getState: () => AppRootStateType) => {
+    async (dispatch: Dispatch, getState: () => AppRootStateType) => {
         const state = getState()
         const task = state.tasks[todolistId].find(t => t.id === taskId)
         if (!task) {
@@ -163,18 +148,21 @@ export const updateTaskTC = (taskId: string, domainModel: UpdateDomainTaskModelT
             ...domainModel
         }
 
-        todolistsAPI.updateTask(todolistId, taskId, apiModel)
-            .then(res => {
-                if (res.data.resultCode === 0) {
-                    const action = updateTaskAC(taskId, domainModel, todolistId)
-                    dispatch(action)
-                } else {
-                    handleServerAppError(res.data, dispatch);
-                }
-            })
-            .catch((error) => {
-                handleServerNetworkError(error, dispatch);
-            })
+        try {
+            const res = await todolistsAPI.updateTask(todolistId, taskId, apiModel)
+
+            if (res.data.resultCode === ResponseResultCode.OK) {
+                const action = updateTaskAC(taskId, domainModel, todolistId)
+                dispatch(action)
+            } else {
+                handleServerAppError(res.data, dispatch);
+            }
+        } catch (e) {
+            if (axios.isAxiosError<{ message: string }>(e)) {
+                const error = e.response?.data ? e.response?.data.message : e.message
+                handleServerNetworkError(error, dispatch)
+            }
+        }
     }
 
 // types
