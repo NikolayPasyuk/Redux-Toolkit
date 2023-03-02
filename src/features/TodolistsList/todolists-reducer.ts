@@ -78,18 +78,19 @@ export const fetchTodolistsTC = () => async (dispatch: Dispatch) => {
         }
     }
 }
-export const removeTodolistTC = (todolistId: string) => {
-    return (dispatch: Dispatch) => {
-        //изменим глобальный статус приложения, чтобы вверху полоса побежала
-        dispatch(setAppStatusAC({status: 'loading'}))
-        //изменим статус конкретного тудулиста, чтобы он мог задизеблить что надо
-        dispatch(changeTodolistEntityStatusAC(todolistId, 'loading'))
-        todolistsAPI.deleteTodolist(todolistId)
-            .then((res) => {
-                dispatch(removeTodolistAC(todolistId))
-                //скажем глобально приложению, что асинхронная операция завершена
-                dispatch(setAppStatusAC({status: 'succeeded'}))
-            })
+export const removeTodolistTC = (todolistId: string) => async (dispatch: Dispatch) => {
+    dispatch(setAppStatusAC({status: 'loading'}))
+    dispatch(changeTodolistEntityStatusAC(todolistId, 'loading'))
+    try {
+        const res = await todolistsAPI.deleteTodolist(todolistId)
+
+        dispatch(removeTodolistAC(todolistId))
+        dispatch(setAppStatusAC({status: 'succeeded'}))
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
     }
 }
 export const addTodolistTC = (title: string) => {
