@@ -37,8 +37,12 @@ const slice = createSlice({
             state[index].entityStatus = action.payload.status
         },
         setTodolistsAC(state, action: PayloadAction<{ todolists: Array<TodolistType> }>) {
-
-        },
+            return action.payload.todolists.map(tl => ({
+                ...tl,
+                filter: 'all',
+                entityStatus: 'idle'
+            }))
+        }
     }
 })
 
@@ -51,22 +55,6 @@ export const {
     changeTodolistEntityStatusAC,
     setTodolistsAC
 } = slice.actions
-//     (state: Array<TodolistDomainType> = initialState, action: ActionsType): Array<TodolistDomainType> => {
-//     switch (action.type) {
-//
-//
-//         case 'SET-TODOLISTS':
-//             return action.todolists.map(tl => ({
-//                 ...tl,
-//                 filter: 'all',
-//                 entityStatus: 'idle'
-//             }))
-//         default:
-//             return state
-//     }
-// }
-
-//actions
 
 // thunks
 export const fetchTodolistsTC = () => async (dispatch: Dispatch) => {
