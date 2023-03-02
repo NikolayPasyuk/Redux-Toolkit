@@ -1,7 +1,7 @@
 import {authAPI, ResponseResultCode} from '../api/todolists-api';
 import {handleServerAppError, handleServerNetworkError} from '../utils/error-utils';
 import axios from 'axios';
-import {setIsLoggedInAC, SetIsLoggedInActionType} from '../features/Login/auth-reducer';
+import {setIsLoggedInAC} from '../features/Login/auth-reducer';
 import {Dispatch} from 'redux';
 
 const initialState: InitialStateType = {
@@ -46,13 +46,13 @@ export const setIsInitializedAC = (isInitialized: boolean) => ({
 } as const)
 
 
-export const initializeAppTC = () => async (dispatch: Dispatch<ActionsType>) => {
+export const initializeAppTC = () => async (dispatch: Dispatch) => {
     dispatch(setAppStatusAC('loading'))
     try {
         const res = await authAPI.me()
 
         if (res.data.resultCode === ResponseResultCode.OK) {
-            dispatch(setIsLoggedInAC(true))
+            dispatch(setIsLoggedInAC({value: true}))
             dispatch(setAppStatusAC('succeeded'))
         } else {
             handleServerAppError(res.data, dispatch);
@@ -72,7 +72,6 @@ export type SetAppErrorActionType = ReturnType<typeof setAppErrorAC>
 export type SetAppStatusActionType = ReturnType<typeof setAppStatusAC>
 
 type ActionsType =
-    | SetIsLoggedInActionType
     | SetAppErrorActionType
     | SetAppStatusActionType
     | ReturnType<typeof setIsInitializedAC>
