@@ -78,17 +78,20 @@ export const setTasksAC = (tasks: Array<TaskType>, todolistId: string) => ({
 } as const)
 
 // thunks
-export const fetchTasksTC = (todolistId: string) => (dispatch: Dispatch) => {
+export const fetchTasksTC = (todolistId: string) => async (dispatch: Dispatch) => {
     dispatch(setAppStatusAC({status: 'loading'}))
-    todolistsAPI.getTasks(todolistId)
-        .then((res) => {
-            const tasks = res.data.items
-            dispatch(setTasksAC(tasks, todolistId))
-            dispatch(setAppStatusAC({status: 'succeeded'}))
-        })
-        .catch((e) => {
-            handleServerNetworkError(e, dispatch)
-        })
+    try {
+        const res = await todolistsAPI.getTasks(todolistId)
+
+        const tasks = res.data.items
+        dispatch(setTasksAC(tasks, todolistId))
+        dispatch(setAppStatusAC({status: 'succeeded'}))
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
+    }
 }
 export const removeTaskTC = (taskId: string, todolistId: string) => async (dispatch: Dispatch) => {
     try {
@@ -109,7 +112,6 @@ export const removeTaskTC = (taskId: string, todolistId: string) => async (dispa
 }
 export const addTaskTC = (title: string, todolistId: string) => async (dispatch: Dispatch) => {
     dispatch(setAppStatusAC({status: 'loading'}))
-
     try {
         const res = await todolistsAPI.createTask(todolistId, title)
 
