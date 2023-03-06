@@ -19,13 +19,15 @@ const rootReducer = combineReducers({
 // непосредственно создаём store
 // export const store = legacy_createStore(rootReducer, applyMiddleware(thunkMiddleware));
 
+export type RootReducerType = typeof rootReducer
+
 export const store = configureStore({
     reducer: rootReducer,
     middleware: getDefaultMiddleware => getDefaultMiddleware().prepend(thunkMiddleware)
 })
 
 // определить автоматически тип всего объекта состояния
-export type AppRootStateType = ReturnType<typeof rootReducer>
+export type AppRootStateType = ReturnType<RootReducerType>
 // создаем тип диспатча который принимает как AC так и TC
 export type AppThunkDispatch = ThunkDispatch<AppRootStateType, any, AnyAction>
 
