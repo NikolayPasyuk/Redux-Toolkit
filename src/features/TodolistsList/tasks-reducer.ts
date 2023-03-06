@@ -1,9 +1,4 @@
 import {
-    AddTodolistActionType,
-    RemoveTodolistActionType,
-    SetTodolistsActionType
-} from './todolists-reducer'
-import {
     ResponseResultCode,
     TaskPriorities,
     TaskStatuses,
@@ -42,7 +37,7 @@ const slice = createSlice({
             }
         },
         setTasksAC(state, action: PayloadAction<{ tasks: Array<TaskType>, todolistId: string }>) {
-
+            state[action.payload.todolistId] = action.payload.tasks
         }
     }
 })
@@ -52,12 +47,6 @@ export const {removeTaskAC, addTaskAC, updateTaskAC, setTasksAC} = slice.actions
 
 // export const tasksReducer2 = (state: TasksStateType = initialState, action: ActionsType): TasksStateType => {
 //     switch (action.type) {
-//         case 'UPDATE-TASK':
-//             return {
-//                 ...state,
-//                 [action.todolistId]: state[action.todolistId]
-//                     .map(t => t.id === action.taskId ? {...t, ...action.model} : t)
-//             }
 //         case addTodolistAC.type:
 //             return {...state, [action.payload.todolist.id]: []}
 //         case removeTodolistAC.type:
@@ -71,8 +60,6 @@ export const {removeTaskAC, addTaskAC, updateTaskAC, setTasksAC} = slice.actions
 //             })
 //             return copyState
 //         }
-//         case 'SET-TASKS':
-//             return {...state, [action.todolistId]: action.tasks}
 //         default:
 //             return state
 //     }
@@ -181,11 +168,3 @@ export type UpdateDomainTaskModelType = {
 export type TasksStateType = {
     [key: string]: Array<TaskType>
 }
-type ActionsType =
-    | ReturnType<typeof removeTaskAC>
-    | ReturnType<typeof addTaskAC>
-    | ReturnType<typeof updateTaskAC>
-    | AddTodolistActionType
-    | RemoveTodolistActionType
-    | SetTodolistsActionType
-    | ReturnType<typeof setTasksAC>
