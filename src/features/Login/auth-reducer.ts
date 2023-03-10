@@ -16,12 +16,14 @@ export const loginTC = createAsyncThunk('auth/login', async (param: LoginParamsT
             return {isLoggedIn: true}
         } else {
             handleServerAppError(res.data, thunkAPI.dispatch);
+            return {isLoggedIn: false}
         }
     } catch (e) {
         if (axios.isAxiosError<{ message: string }>(e)) {
             const error = e.response?.data ? e.response?.data.message : e.message
             handleServerNetworkError(error, thunkAPI.dispatch)
         }
+        return {isLoggedIn: false}
     }
 })
 
@@ -37,9 +39,7 @@ const slice = createSlice({
     },
     extraReducers: (builder) => {
         builder.addCase(loginTC.fulfilled, (state, action) => {
-            if (action.payload) {
-                state.isLoggedIn = action.payload.isLoggedIn
-            }
+            state.isLoggedIn = action.payload.isLoggedIn
         })
     }
 })
