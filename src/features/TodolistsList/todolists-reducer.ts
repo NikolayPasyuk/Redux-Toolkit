@@ -67,23 +67,25 @@ export const addTodolistTC = createAsyncThunk('todolists/addTodolist', async (ti
     }
 })
 export const changeTodolistTitleTC = createAsyncThunk('todolists/changeTodolistTitle', async (param: { id: string, title: string }, {
-    dispatch
+    dispatch, rejectWithValue
 }) => {
     dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await todolistsAPI.updateTodolist(param.id, param.title)
 
         if (res.data.resultCode === ResponseResultCode.OK) {
-            dispatch(changeTodolistTitleAC({id: param.id, title: param.title}))
             dispatch(setAppStatusAC({status: 'succeeded'}))
+            return {id: param.id, title: param.title}
         } else {
             handleServerAppError(res.data, dispatch);
+            return rejectWithValue(null)
         }
     } catch (e) {
         if (axios.isAxiosError<{ message: string }>(e)) {
             const error = e.response?.data ? e.response?.data.message : e.message
             handleServerNetworkError(error, dispatch)
         }
+        return rejectWithValue(null)
     }
 })
 
@@ -91,10 +93,6 @@ const slice = createSlice({
     name: 'todolists',
     initialState: [] as Array<TodolistDomainType>,
     reducers: {
-        changeTodolistTitleAC(state, action: PayloadAction<{ id: string, title: string }>) {
-            const index = state.findIndex(tl => tl.id === action.payload.id)
-            state[index].title = action.payload.title
-        },
         changeTodolistFilterAC(state, action: PayloadAction<{ id: string, filter: FilterValuesType }>) {
             const index = state.findIndex(tl => tl.id === action.payload.id)
             state[index].filter = action.payload.filter
@@ -125,18 +123,20 @@ const slice = createSlice({
                 entityStatus: 'idle'
             })
         });
+        builder.addCase(changeTodolistTitleTC.fulfilled, (state, action) => {
+            const index = state.findIndex(tl => tl.id === action.payload.id)
+            state[index].title = action.payload.title
+        });
     }
 })
 
 export const todolistsReducer = slice.reducer
 export const {
-    changeTodolistTitleAC,
     changeTodolistFilterAC,
     changeTodolistEntityStatusAC,
 } = slice.actions
 
 // types
-
 export type FilterValuesType = 'all' | 'active' | 'completed';
 export type TodolistDomainType = TodolistType & {
     filter: FilterValuesType
