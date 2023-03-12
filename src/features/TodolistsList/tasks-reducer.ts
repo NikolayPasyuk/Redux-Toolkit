@@ -6,7 +6,6 @@ import {
     todolistsAPI,
     UpdateTaskModelType
 } from '../../api/todolists-api'
-import {Dispatch} from 'redux'
 import {AppRootStateType} from '../../app/store'
 import {setAppStatusAC,} from '../../app/app-reducer'
 import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils'
@@ -69,6 +68,49 @@ export const addTaskTC = createAsyncThunk('tasks/addTask', async (
         return rejectWithValue(null)
     }
 })
+export const updateTaskTC = createAsyncThunk('tasks/updateTask', async (
+    param: { taskId: string, model: UpdateDomainTaskModelType, todolistId: string },
+    {dispatch, rejectWithValue, getState}) => {
+    dispatch(setAppStatusAC({status: 'loading'}))
+
+    const state = getState() as AppRootStateType
+    const task = state.tasks[param.todolistId].find(t => t.id === param.taskId)
+    if (!task) {
+        return rejectWithValue('task not found in the state')
+    }
+
+    const apiModel: UpdateTaskModelType = {
+        deadline: task.deadline,
+        description: task.description,
+        priority: task.priority,
+        startDate: task.startDate,
+        title: task.title,
+        status: task.status,
+        ...param.model
+    }
+
+    try {
+        const res = await todolistsAPI.updateTask(param.todolistId, param.taskId, apiModel)
+        if (res.data.resultCode === ResponseResultCode.OK) {
+            const action = updateTaskAC({
+                taskId: param.taskId,
+                model: param.model,
+                todolistId: param.todolistId
+            })
+            dispatch(action)
+            dispatch(setAppStatusAC({status: 'succeeded'}))
+        } else {
+            handleServerAppError(res.data, dispatch);
+            return rejectWithValue(null)
+        }
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
+        return rejectWithValue(null)
+    }
+})
 
 const slice = createSlice({
     name: 'tasks',
@@ -118,44 +160,6 @@ const slice = createSlice({
 
 export const tasksReducer = slice.reducer
 export const {updateTaskAC} = slice.actions
-
-// thunks
-
-export const updateTaskTC = (taskId: string, model: UpdateDomainTaskModelType, todolistId: string) => async (dispatch: Dispatch, getState: () => AppRootStateType) => {
-    const state = getState()
-    const task = state.tasks[todolistId].find(t => t.id === taskId)
-    if (!task) {
-        //throw new Error("task not found in the state");
-        console.warn('task not found in the state')
-        return
-    }
-
-    const apiModel: UpdateTaskModelType = {
-        deadline: task.deadline,
-        description: task.description,
-        priority: task.priority,
-        startDate: task.startDate,
-        title: task.title,
-        status: task.status,
-        ...model
-    }
-
-    try {
-        const res = await todolistsAPI.updateTask(todolistId, taskId, apiModel)
-
-        if (res.data.resultCode === ResponseResultCode.OK) {
-            const action = updateTaskAC({taskId, model, todolistId})
-            dispatch(action)
-        } else {
-            handleServerAppError(res.data, dispatch);
-        }
-    } catch (e) {
-        if (axios.isAxiosError<{ message: string }>(e)) {
-            const error = e.response?.data ? e.response?.data.message : e.message
-            handleServerNetworkError(error, dispatch)
-        }
-    }
-}
 
 // types
 export type UpdateDomainTaskModelType = {
