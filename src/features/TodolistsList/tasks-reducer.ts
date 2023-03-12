@@ -11,7 +11,7 @@ import {setAppStatusAC,} from '../../app/app-reducer'
 import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils'
 import axios from 'axios';
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
-import {addTodolistAC, fetchTodolistsTC, removeTodolistAC} from './todolists-reducer';
+import {addTodolistAC, fetchTodolistsTC, removeTodolistTC} from './todolists-reducer';
 
 const initialState: TasksStateType = {}
 
@@ -115,7 +115,7 @@ const slice = createSlice({
         builder.addCase(addTodolistAC, (state, action) => {
             state[action.payload.todolist.id] = []
         });
-        builder.addCase(removeTodolistAC, (state, action) => {
+        builder.addCase(removeTodolistTC.fulfilled, (state, action) => {
             delete state[action.payload.id]
         });
         builder.addCase(fetchTodolistsTC.fulfilled, (state, action) => {
