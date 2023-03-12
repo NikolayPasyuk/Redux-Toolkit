@@ -10,15 +10,15 @@ import axios from 'axios';
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 
-export const loginTC = createAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType, {
+export const loginTC = createAsyncThunk<undefined, LoginParamsType, {
     rejectValue: { errors: Array<string>, fieldsErrors?: Array<FieldErrorType> }
-}>('auth/login', async (param, thunkAPI: any) => {
+}>('auth/login', async (param, thunkAPI) => {
     thunkAPI.dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await authAPI.login(param)
         if (res.data.resultCode === ResponseResultCode.OK) {
             thunkAPI.dispatch(setAppStatusAC({status: 'succeeded'}))
-            return {isLoggedIn: true}
+            return
         } else {
             handleServerAppError(res.data, thunkAPI.dispatch);
             return thunkAPI.rejectWithValue({
@@ -69,8 +69,8 @@ const slice = createSlice({
         }
     },
     extraReducers: (builder) => {
-        builder.addCase(loginTC.fulfilled, (state, action) => {
-            state.isLoggedIn = action.payload.isLoggedIn
+        builder.addCase(loginTC.fulfilled, (state) => {
+            state.isLoggedIn = true
         })
     }
 })
