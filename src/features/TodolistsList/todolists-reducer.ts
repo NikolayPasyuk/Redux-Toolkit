@@ -53,16 +53,18 @@ export const addTodolistTC = createAsyncThunk('todolists/addTodolistTC', async (
         const res = await todolistsAPI.createTodolist(title)
 
         if (res.data.resultCode === ResponseResultCode.OK) {
-            dispatch(addTodolistAC({todolist: res.data.data.item}))
             dispatch(setAppStatusAC({status: 'succeeded'}))
+            return {todolist: res.data.data.item}
         } else {
             handleServerAppError(res.data, dispatch);
+            return rejectWithValue(null)
         }
     } catch (e) {
         if (axios.isAxiosError<{ message: string }>(e)) {
             const error = e.response?.data ? e.response?.data.message : e.message
             handleServerNetworkError(error, dispatch)
         }
+        return rejectWithValue(null)
     }
 })
 
@@ -70,13 +72,6 @@ const slice = createSlice({
     name: 'todolists',
     initialState: [] as Array<TodolistDomainType>,
     reducers: {
-        addTodolistAC(state, action: PayloadAction<{ todolist: TodolistType }>) {
-            state.unshift({
-                ...action.payload.todolist,
-                filter: 'all',
-                entityStatus: 'idle'
-            })
-        },
         changeTodolistTitleAC(state, action: PayloadAction<{ id: string, title: string }>) {
             const index = state.findIndex(tl => tl.id === action.payload.id)
             state[index].title = action.payload.title
@@ -104,19 +99,22 @@ const slice = createSlice({
                 state.splice(index, 1)
             }
         });
+        builder.addCase(addTodolistTC.fulfilled, (state, action) => {
+            state.unshift({
+                ...action.payload.todolist,
+                filter: 'all',
+                entityStatus: 'idle'
+            })
+        });
     }
 })
 
 export const todolistsReducer = slice.reducer
 export const {
-    addTodolistAC,
     changeTodolistTitleAC,
     changeTodolistFilterAC,
     changeTodolistEntityStatusAC,
 } = slice.actions
-
-// thunks
-
 
 export const changeTodolistTitleTC = (id: string, title: string) => async (dispatch: Dispatch) => {
     dispatch(setAppStatusAC({status: 'loading'}))
