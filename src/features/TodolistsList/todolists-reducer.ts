@@ -1,5 +1,4 @@
 import {ResponseResultCode, todolistsAPI, TodolistType} from '../../api/todolists-api'
-import {Dispatch} from 'redux'
 import {RequestStatusType, setAppStatusAC,} from '../../app/app-reducer'
 import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils';
 import axios from 'axios';
@@ -44,7 +43,7 @@ export const removeTodolistTC = createAsyncThunk('todolists/removeTodolist', asy
         return rejectWithValue(null)
     }
 })
-export const addTodolistTC = createAsyncThunk('todolists/addTodolistTC', async (title: string, {
+export const addTodolistTC = createAsyncThunk('todolists/addTodolist', async (title: string, {
     dispatch,
     rejectWithValue
 }) => {
@@ -65,6 +64,26 @@ export const addTodolistTC = createAsyncThunk('todolists/addTodolistTC', async (
             handleServerNetworkError(error, dispatch)
         }
         return rejectWithValue(null)
+    }
+})
+export const changeTodolistTitleTC = createAsyncThunk('todolists/changeTodolistTitle', async (param: { id: string, title: string }, {
+    dispatch
+}) => {
+    dispatch(setAppStatusAC({status: 'loading'}))
+    try {
+        const res = await todolistsAPI.updateTodolist(param.id, param.title)
+
+        if (res.data.resultCode === ResponseResultCode.OK) {
+            dispatch(changeTodolistTitleAC({id: param.id, title: param.title}))
+            dispatch(setAppStatusAC({status: 'succeeded'}))
+        } else {
+            handleServerAppError(res.data, dispatch);
+        }
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, dispatch)
+        }
     }
 })
 
@@ -115,25 +134,6 @@ export const {
     changeTodolistFilterAC,
     changeTodolistEntityStatusAC,
 } = slice.actions
-
-export const changeTodolistTitleTC = (id: string, title: string) => async (dispatch: Dispatch) => {
-    dispatch(setAppStatusAC({status: 'loading'}))
-    try {
-        const res = await todolistsAPI.updateTodolist(id, title)
-
-        if (res.data.resultCode === ResponseResultCode.OK) {
-            dispatch(changeTodolistTitleAC({id: id, title}))
-            dispatch(setAppStatusAC({status: 'succeeded'}))
-        } else {
-            handleServerAppError(res.data, dispatch);
-        }
-    } catch (e) {
-        if (axios.isAxiosError<{ message: string }>(e)) {
-            const error = e.response?.data ? e.response?.data.message : e.message
-            handleServerNetworkError(error, dispatch)
-        }
-    }
-}
 
 // types
 
