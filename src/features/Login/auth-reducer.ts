@@ -44,6 +44,7 @@ export const logoutTC = createAsyncThunk('auth/logout', async (param, thunkAPI) 
         const res = await authAPI.logout()
         if (res.data.resultCode === ResponseResultCode.OK) {
             thunkAPI.dispatch(setAppStatusAC({status: 'succeeded'}))
+            return
         } else {
             handleServerAppError(res.data, thunkAPI.dispatch);
             return thunkAPI.rejectWithValue({})
@@ -52,9 +53,8 @@ export const logoutTC = createAsyncThunk('auth/logout', async (param, thunkAPI) 
         if (axios.isAxiosError<{ message: string }>(e)) {
             const error = e.response?.data ? e.response?.data.message : e.message
             handleServerNetworkError(error, thunkAPI.dispatch)
-
-            return thunkAPI.rejectWithValue({})
         }
+        return thunkAPI.rejectWithValue({})
     }
 })
 
@@ -71,6 +71,9 @@ const slice = createSlice({
     extraReducers: (builder) => {
         builder.addCase(loginTC.fulfilled, (state) => {
             state.isLoggedIn = true
+        })
+        builder.addCase(logoutTC.fulfilled, (state) => {
+            state.isLoggedIn = false
         })
     }
 })
