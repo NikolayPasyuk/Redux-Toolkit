@@ -1,12 +1,19 @@
 import {Dispatch} from 'redux'
 import {setAppStatusAC} from '../../app/app-reducer'
-import {authAPI, LoginParamsType, ResponseResultCode} from '../../api/todolists-api';
+import {
+    authAPI,
+    FieldErrorType,
+    LoginParamsType,
+    ResponseResultCode
+} from '../../api/todolists-api';
 import {handleServerAppError, handleServerNetworkError} from '../../utils/error-utils';
 import axios from 'axios';
 import {createAsyncThunk, createSlice, PayloadAction} from '@reduxjs/toolkit';
 
 
-export const loginTC = createAsyncThunk('auth/login', async (param: LoginParamsType, thunkAPI) => {
+export const loginTC = createAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType, {
+    rejectValue: { errors: Array<string>, fieldsErrors?: Array<FieldErrorType> }
+}>('auth/login', async (param, thunkAPI: any) => {
     thunkAPI.dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await authAPI.login(param)
@@ -16,14 +23,21 @@ export const loginTC = createAsyncThunk('auth/login', async (param: LoginParamsT
             return {isLoggedIn: true}
         } else {
             handleServerAppError(res.data, thunkAPI.dispatch);
-            return {isLoggedIn: false}
+            return thunkAPI.rejectWithValue({
+                errors: res.data.messages,
+                fieldsErrors: res.data.fieldsErrors
+            })
         }
     } catch (e) {
         if (axios.isAxiosError<{ message: string }>(e)) {
             const error = e.response?.data ? e.response?.data.message : e.message
             handleServerNetworkError(error, thunkAPI.dispatch)
+
+            return thunkAPI.rejectWithValue({
+                errors: [e.message],
+                fieldsErrors: undefined
+            })
         }
-        return {isLoggedIn: false}
     }
 })
 

@@ -1,8 +1,8 @@
 import {tasksReducer} from '../features/TodolistsList/tasks-reducer';
 import {todolistsReducer} from '../features/TodolistsList/todolists-reducer';
-import {AnyAction, combineReducers} from 'redux'
+import {combineReducers} from 'redux'
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
-import thunkMiddleware, {ThunkDispatch} from 'redux-thunk'
+import thunkMiddleware from 'redux-thunk'
 import {appReducer} from './app-reducer'
 import {authReducer} from '../features/Login/auth-reducer';
 import {configureStore} from '@reduxjs/toolkit';
@@ -28,10 +28,9 @@ export const store = configureStore({
 
 // определить автоматически тип всего объекта состояния
 export type AppRootStateType = ReturnType<RootReducerType>
-// создаем тип диспатча который принимает как AC так и TC
-export type AppThunkDispatch = ThunkDispatch<AppRootStateType, any, AnyAction>
 
-export const useAppDispatch = () => useDispatch<AppThunkDispatch>();
+type AppDispatchType = typeof store.dispatch
+export const useAppDispatch = () => useDispatch<AppDispatchType>();
 export const useAppSelector: TypedUseSelectorHook<AppRootStateType> = useSelector
 
 // а это, чтобы можно было в консоли браузера обращаться к store в любой момент
