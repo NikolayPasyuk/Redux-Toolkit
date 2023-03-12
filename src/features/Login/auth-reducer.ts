@@ -1,4 +1,3 @@
-import {Dispatch} from 'redux'
 import {setAppStatusAC} from '../../app/app-reducer'
 import {
     authAPI,
@@ -17,7 +16,6 @@ export const loginTC = createAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType
     thunkAPI.dispatch(setAppStatusAC({status: 'loading'}))
     try {
         const res = await authAPI.login(param)
-
         if (res.data.resultCode === ResponseResultCode.OK) {
             thunkAPI.dispatch(setAppStatusAC({status: 'succeeded'}))
             return {isLoggedIn: true}
@@ -37,6 +35,25 @@ export const loginTC = createAsyncThunk<{ isLoggedIn: boolean }, LoginParamsType
                 errors: [e.message],
                 fieldsErrors: undefined
             })
+        }
+    }
+})
+export const logoutTC = createAsyncThunk('auth/logout', async (param, thunkAPI) => {
+    thunkAPI.dispatch(setAppStatusAC({status: 'loading'}))
+    try {
+        const res = await authAPI.logout()
+        if (res.data.resultCode === ResponseResultCode.OK) {
+            thunkAPI.dispatch(setAppStatusAC({status: 'succeeded'}))
+        } else {
+            handleServerAppError(res.data, thunkAPI.dispatch);
+            return thunkAPI.rejectWithValue({})
+        }
+    } catch (e) {
+        if (axios.isAxiosError<{ message: string }>(e)) {
+            const error = e.response?.data ? e.response?.data.message : e.message
+            handleServerNetworkError(error, thunkAPI.dispatch)
+
+            return thunkAPI.rejectWithValue({})
         }
     }
 })
@@ -60,23 +77,3 @@ const slice = createSlice({
 
 export const authReducer = slice.reducer
 export const {setIsLoggedInAC} = slice.actions
-
-// thunks
-export const logoutTC = () => async (dispatch: Dispatch) => {
-    dispatch(setAppStatusAC({status: 'loading'}))
-    try {
-        const res = await authAPI.logout()
-
-        if (res.data.resultCode === ResponseResultCode.OK) {
-            dispatch(setIsLoggedInAC({value: false}))
-            dispatch(setAppStatusAC({status: 'succeeded'}))
-        } else {
-            handleServerAppError(res.data, dispatch);
-        }
-    } catch (e) {
-        if (axios.isAxiosError<{ message: string }>(e)) {
-            const error = e.response?.data ? e.response?.data.message : e.message
-            handleServerNetworkError(error, dispatch)
-        }
-    }
-}
