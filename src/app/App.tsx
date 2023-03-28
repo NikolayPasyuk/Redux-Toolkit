@@ -1,8 +1,7 @@
 import React, {useEffect} from 'react'
 import './App.css'
-import {TodolistsList} from '../features/TodolistsList/TodolistsList'
-import {useAppDispatch, useAppSelector} from './store'
-import {initializeAppTC, RequestStatusType} from './app-reducer'
+import {TodolistsList} from '../features/TodolistsList'
+import {appActions} from '../features/Application'
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import IconButton from '@mui/material/IconButton';
@@ -12,21 +11,25 @@ import Container from '@mui/material/Container';
 import LinearProgress from '@mui/material/LinearProgress';
 import {Menu} from '@mui/icons-material';
 import {ErrorSnackbar} from '../components/ErrorSnackbar/ErrorSnackbar';
-import {Routes, Route, Navigate} from 'react-router-dom';
-import {Login} from '../features/Login/Login';
+import {Navigate, Route, Routes} from 'react-router-dom';
 import CircularProgress from '@mui/material/CircularProgress';
-import {logoutTC} from '../features/Login/auth-reducer';
+import {authActions, authSelectors, Login} from '../features/Auth';
+import {selectIsInitialized, selectStatus} from './selectors';
+import {useActions} from '../utils/redux-utils';
+import {useAppSelector} from '../utils/types';
 
 function App() {
-    const status = useAppSelector<RequestStatusType>((state) => state.app.status)
-    const dispatch = useAppDispatch()
-    const isInitialized = useAppSelector<boolean>(state => state.app.isInitialized)
-    const isLoggedIn = useAppSelector<boolean>(state => state.auth.isLoggedIn)
+    const status = useAppSelector(selectStatus)
+    const isInitialized = useAppSelector(selectIsInitialized)
+    const isLoggedIn = useAppSelector(authSelectors.selectIsLoggedIn)
 
-    const onClickLogoutHandler = (() => dispatch(logoutTC()))
+    const {logout} = useActions(authActions)
+    const {initializeApp} = useActions(appActions)
+
+    const onClickLogoutHandler = (() => logout())
 
     useEffect(() => {
-        dispatch(initializeAppTC())
+        initializeApp()
     }, [])
 
     if (!isInitialized) {
@@ -49,7 +52,8 @@ function App() {
                         News
                     </Typography>
                     {isLoggedIn &&
-                        <Button color="inherit" onClick={onClickLogoutHandler}>Log out</Button>}
+                        <Button color="inherit" onClick={onClickLogoutHandler}>Log
+                            out</Button>}
                 </Toolbar>
                 {status === 'loading' && <LinearProgress/>}
             </AppBar>

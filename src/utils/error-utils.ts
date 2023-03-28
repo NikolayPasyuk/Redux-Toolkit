@@ -1,20 +1,32 @@
 import {
-    setAppErrorAC,
-    setAppStatusAC
-} from '../app/app-reducer'
-import {ResponseType} from '../api/todolists-api'
+    appActions
+} from '../features/CommonActions/App'
 import {Dispatch} from 'redux'
+import {ResponseType} from '../api/types';
 
-export const handleServerAppError = <D>(data: ResponseType<D>, dispatch: Dispatch) => {
-    if (data.messages.length) {
-        dispatch(setAppErrorAC({error: data.messages[0]}))
-    } else {
-        dispatch(setAppErrorAC({error: 'Some error occurred'}))
+export const handleServerNetworkError = (error: string, dispatch: Dispatch, showError = true) => {
+    if (showError) {
+        dispatch(appActions.setAppError({error: error ? error : 'Some error occurred'}))
     }
-    dispatch(setAppStatusAC({status: 'failed'}))
+    dispatch(appActions.setAppStatus({status: 'failed'}))
 }
 
-export const handleServerNetworkError = (error: string, dispatch: Dispatch) => {
-    dispatch(setAppErrorAC({error: error ? error : 'Some error occurred'}))
-    dispatch(setAppStatusAC({status: 'failed'}))
+type thunkAPIType = {
+    dispatch: (action: any) => any
+    rejectWithValue: Function
+}
+
+export const handleAsyncServerAppError = <D>(data: ResponseType<D>, thunkAPI: thunkAPIType, showError = true) => {
+    if (showError) {
+        thunkAPI.dispatch(appActions.setAppError({
+            error: data.messages.length ? data.messages[0] :
+                'Some error occurred'
+        }))
+    }
+    thunkAPI.dispatch(appActions.setAppStatus({status: 'failed'}))
+
+    return thunkAPI.rejectWithValue({
+        errors: data.messages,
+        fieldsErrors: data.fieldsErrors
+    })
 }
